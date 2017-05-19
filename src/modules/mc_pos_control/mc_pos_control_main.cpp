@@ -1384,60 +1384,32 @@ void MulticopterPositionControl::control_auto(float dt)
 
 	if (_pos_sp_triplet.current.valid) {
 
-		//only project setpoints if they are finite, else use current position
-		if (PX4_ISFINITE(_pos_sp_triplet.current.lat) &&
-		    PX4_ISFINITE(_pos_sp_triplet.current.lon)) {
-			/* project setpoint to local frame */
-			map_projection_project(&_ref_pos,
-					       _pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon,
-					       &_curr_pos_sp.data[0], &_curr_pos_sp.data[1]);
+		_curr_pos_sp(0) =  _pos_sp_triplet.current.x;
+		_curr_pos_sp(1) =  _pos_sp_triplet.current.y;
+		_curr_pos_sp(2) =  _pos_sp_triplet.current.z;
 
-		} else {
-			_curr_pos_sp(0) = _pos(0);
-			_curr_pos_sp(1) = _pos(1);
-		}
-
-		//only project setpoints if they are finite, else use current position
-		if (PX4_ISFINITE(_pos_sp_triplet.current.alt)) {
-			_curr_pos_sp(2) = -(_pos_sp_triplet.current.alt - _ref_alt);
-
-		} else {
-			_curr_pos_sp(2) = _pos(2);
-		}
-
-		if (PX4_ISFINITE(_curr_pos_sp(0)) &&
-		    PX4_ISFINITE(_curr_pos_sp(1)) &&
-		    PX4_ISFINITE(_curr_pos_sp(2))) {
-			current_setpoint_valid = true;
-		}
+	} else {
+		_curr_pos_sp(0) = _pos(0);
+		_curr_pos_sp(1) = _pos(1);
+		_curr_pos_sp(2) = _pos(2);
 	}
+
+	current_setpoint_valid = true;
 
 	if (_pos_sp_triplet.previous.valid) {
-		map_projection_project(&_ref_pos,
-				       _pos_sp_triplet.previous.lat, _pos_sp_triplet.previous.lon,
-				       &prev_sp.data[0], &prev_sp.data[1]);
-		prev_sp(2) = -(_pos_sp_triplet.previous.alt - _ref_alt);
 
-		if (PX4_ISFINITE(prev_sp(0)) &&
-		    PX4_ISFINITE(prev_sp(1)) &&
-		    PX4_ISFINITE(prev_sp(2))) {
-
-			previous_setpoint_valid = true;
-		}
+		prev_sp(0) =  _pos_sp_triplet.previous.x;
+		prev_sp(1) =  _pos_sp_triplet.previous.y;
+		prev_sp(2) =  _pos_sp_triplet.previous.z;
+		previous_setpoint_valid = true;
 	}
 
-
 	if (_pos_sp_triplet.next.valid) {
-		map_projection_project(&_ref_pos,
-				       _pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon,
-				       &next_sp.data[0], &next_sp.data[1]);
-		next_sp(2) = -(_pos_sp_triplet.next.alt - _ref_alt);
 
-		if (PX4_ISFINITE(next_sp(0)) &&
-		    PX4_ISFINITE(next_sp(1)) &&
-		    PX4_ISFINITE(next_sp(2))) {
-			next_setpoint_valid = true;
-		}
+		next_sp(0) =  _pos_sp_triplet.next.x;
+		next_sp(1) =  _pos_sp_triplet.next.y;
+		next_sp(2) =  _pos_sp_triplet.next.z;
+		next_setpoint_valid = true;
 	}
 
 	/* set velocity limit if close to current setpoint and no next setpoint available */
