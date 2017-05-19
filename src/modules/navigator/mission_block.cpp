@@ -535,6 +535,11 @@ MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *ite
 	sp->cruising_speed = _navigator->get_cruising_speed();
 	sp->cruising_throttle = _navigator->get_cruising_throttle();
 
+	/* TODO: adjust mc_pos_control to use local setpoint only */
+	if (!_navigator->get_vstatus()->is_rotary_wing) {
+		global_to_local(item, sp);
+	}
+
 	switch (item->nav_cmd) {
 	case NAV_CMD_IDLE:
 		sp->type = position_setpoint_s::SETPOINT_TYPE_IDLE;
@@ -598,6 +603,16 @@ MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *ite
 	}
 
 	sp->valid = true;
+}
+
+void
+MissionBlock::global_to_local(const struct mission_item_s *item, struct position_setpoint_s *sp)
+{
+
+	map_projection_project(_navigator->get_local_reference_pos(), item->lat, item->lon,
+			       &sp->x, &sp->y);
+	sp->z = -(sp->alt - _navigator->get_local_reference_alt());
+
 }
 
 void

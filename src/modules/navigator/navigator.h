@@ -58,6 +58,7 @@
 #include <controllib/blocks.hpp>
 #include <navigator/navigation.h>
 #include <systemlib/perf_counter.h>
+#include <lib/geo/geo.h>
 #include <uORB/topics/fw_pos_ctrl_status.h>
 #include <uORB/topics/geofence_result.h>
 #include <uORB/topics/mission.h>
@@ -140,6 +141,8 @@ public:
 	struct vehicle_land_detected_s *get_land_detected() { return &_land_detected; }
 	struct vehicle_local_position_s *get_local_position() { return &_local_pos; }
 	struct vehicle_status_s *get_vstatus() { return &_vstatus; }
+	struct map_projection_reference_s *get_local_reference_pos() {return &_ref_pos;}
+	float 		get_local_reference_alt() {return _ref_alt;}
 
 	bool home_position_valid() { return (_home_pos.timestamp > 0); }
 
@@ -148,6 +151,8 @@ public:
 	Geofence	&get_geofence() { return _geofence; }
 	bool		get_can_loiter_at_sp() { return _can_loiter_at_sp; }
 	float		get_loiter_radius() { return _param_loiter_radius.get(); }
+
+
 
 	/**
 	 * Returns the default acceptance radius defined by the parameter
@@ -204,6 +209,7 @@ public:
 	 * Set the target throttle
 	 */
 	void		set_cruising_throttle(float throttle = -1.0f) { _mission_throttle = throttle; }
+
 
 	/**
 	 * Get the acceptance radius given the mission item preset radius
@@ -263,6 +269,9 @@ private:
 	vehicle_land_detected_s				_land_detected{};	/**< vehicle land_detected */
 	vehicle_local_position_s			_local_pos;		/**< local vehicle position */
 	vehicle_status_s				_vstatus{};		/**< vehicle status */
+	map_projection_reference_s _ref_pos{}; /** local reference position */
+	hrt_abstime _ref_timestamp{0}; /** time stamp when reference for local frame has been updated */
+	float _ref_alt{0.0f}; /** local reference altitude */
 
 	int		_mission_instance_count{-1};	/**< instance count for the current mission */
 
@@ -310,6 +319,7 @@ private:
 	void		sensor_combined_update();
 	void		vehicle_land_detected_update();
 	void		vehicle_status_update();
+	void 		local_reference_update();
 
 	/**
 	 * Shim for calling task_main from task_create.
@@ -335,5 +345,7 @@ private:
 	 * Publish the mission result so commander and mavlink know what is going on
 	 */
 	void		publish_mission_result();
+
+
 };
 #endif
