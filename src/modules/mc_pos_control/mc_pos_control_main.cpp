@@ -61,7 +61,6 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/position_setpoint_triplet.h>
 #include <uORB/topics/vehicle_control_mode.h>
-#include <uORB/topics/vehicle_global_velocity_setpoint.h>
 #include <uORB/topics/vehicle_land_detected.h>
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
@@ -121,7 +120,6 @@ private:
 	int		_home_pos_sub; 			/**< home position */
 	orb_advert_t	_att_sp_pub;			/**< attitude setpoint publication */
 	orb_advert_t	_local_pos_sp_pub;		/**< vehicle local position setpoint publication */
-	orb_advert_t	_global_vel_sp_pub;		/**< vehicle global velocity setpoint publication */
 
 	orb_id_t _attitude_setpoint_id;
 
@@ -134,7 +132,6 @@ private:
 	struct vehicle_local_position_s			_local_pos;		/**< vehicle local position */
 	struct position_setpoint_triplet_s		_pos_sp_triplet;	/**< vehicle global position setpoint triplet */
 	struct vehicle_local_position_setpoint_s	_local_pos_sp;		/**< vehicle local position setpoint */
-	struct vehicle_global_velocity_setpoint_s	_global_vel_sp;		/**< vehicle global velocity setpoint */
 	struct home_position_s				_home_pos; 				/**< home position */
 
 	control::BlockParamFloat _manual_thr_min; /**< minimal throttle output when flying in manual mode */
@@ -293,11 +290,6 @@ private:
 	void		slow_land_gradual_velocity_limit();
 
 	/**
-	 * Update reference for local position projection
-	 */
-	void		update_ref();
-
-	/**
 	 * Reset position setpoint to current position.
 	 *
 	 * This reset will only occur if the _reset_pos_sp flag has been set.
@@ -394,7 +386,6 @@ MulticopterPositionControl::MulticopterPositionControl() :
 	/* publications */
 	_att_sp_pub(nullptr),
 	_local_pos_sp_pub(nullptr),
-	_global_vel_sp_pub(nullptr),
 	_attitude_setpoint_id(nullptr),
 	_vehicle_status{},
 	_vehicle_land_detected{},
@@ -405,7 +396,6 @@ MulticopterPositionControl::MulticopterPositionControl() :
 	_local_pos{},
 	_pos_sp_triplet{},
 	_local_pos_sp{},
-	_global_vel_sp{},
 	_home_pos{},
 	_manual_thr_min(this, "MANTHR_MIN"),
 	_manual_thr_max(this, "MANTHR_MAX"),
@@ -787,38 +777,6 @@ void
 MulticopterPositionControl::task_main_trampoline(int argc, char *argv[])
 {
 	pos_control::g_control->task_main();
-}
-
-void
-MulticopterPositionControl::update_ref()
-{
-	if (_local_pos.ref_timestamp != _ref_timestamp) {
-		double lat_sp, lon_sp;
-		float alt_sp = 0.0f;
-
-		if (_ref_timestamp != 0) {
-			// calculate current position setpoint in global frame
-			map_projection_reproject(&_ref_pos, _pos_sp(0), _pos_sp(1), &lat_sp, &lon_sp);
-			// the altitude setpoint is the reference altitude (Z up) plus the (Z down)
-			// NED setpoint, multiplied out to minus
-			alt_sp = _ref_alt - _pos_sp(2);
-		}
-
-		// update local projection reference including altitude
-		map_projection_init(&_ref_pos, _local_pos.ref_lat, _local_pos.ref_lon);
-		_ref_alt = _local_pos.ref_alt;
-
-		if (_ref_timestamp != 0) {
-			// reproject position setpoint to new reference
-			// this effectively adjusts the position setpoint to keep the vehicle
-			// in its current local position. It would only change its
-			// global position on the next setpoint update.
-			map_projection_project(&_ref_pos, lat_sp, lon_sp, &_pos_sp.data[0], &_pos_sp.data[1]);
-			_pos_sp(2) = -(alt_sp - _ref_alt);
-		}
-
-		_ref_timestamp = _local_pos.ref_timestamp;
-	}
 }
 
 void
@@ -1751,19 +1709,6 @@ MulticopterPositionControl::calculate_velocity_setpoint(float dt)
 		/* limit vertical velocity to the current ramp value */
 		_vel_sp(2) = math::max(_vel_sp(2), -_takeoff_vel_limit);
 	}
-
-	/* publish velocity setpoint */
-	_global_vel_sp.timestamp = hrt_absolute_time();
-	_global_vel_sp.vx = _vel_sp(0);
-	_global_vel_sp.vy = _vel_sp(1);
-	_global_vel_sp.vz = _vel_sp(2);
-
-	if (_global_vel_sp_pub != nullptr) {
-		orb_publish(ORB_ID(vehicle_global_velocity_setpoint), _global_vel_sp_pub, &_global_vel_sp);
-
-	} else {
-		_global_vel_sp_pub = orb_advertise(ORB_ID(vehicle_global_velocity_setpoint), &_global_vel_sp);
-	}
 }
 
 void
@@ -2317,8 +2262,6 @@ MulticopterPositionControl::task_main()
 		}
 
 		was_landed = _vehicle_land_detected.landed;
-
-		update_ref();
 
 		update_velocity_derivative();
 
