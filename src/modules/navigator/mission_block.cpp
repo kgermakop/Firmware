@@ -536,10 +536,8 @@ MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *ite
 	sp->cruising_speed = _navigator->get_cruising_speed();
 	sp->cruising_throttle = _navigator->get_cruising_throttle();
 
-	/* TODO: adjust mc_pos_control to use local setpoint only */
-	if (_navigator->get_vstatus()->is_rotary_wing) {
-		_navigator->global_to_local(sp);
-	}
+	/* compute local setpoint */
+	_navigator->global_to_local(sp);
 
 	switch (item->nav_cmd) {
 	case NAV_CMD_IDLE:
