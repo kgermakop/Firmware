@@ -144,6 +144,7 @@ public:
 	struct map_projection_reference_s *get_local_reference_pos() {return &_ref_pos;}
 	float 		get_local_reference_alt() {return _ref_alt;}
 
+
 	bool home_position_valid() { return (_home_pos.timestamp > 0); }
 
 	int		get_onboard_mission_sub() { return _onboard_mission_sub; }
@@ -179,6 +180,7 @@ public:
 	 * @return the desired cruising speed for this mission
 	 */
 	float		get_cruising_speed();
+
 
 	/**
 	 * Set the cruising speed
@@ -228,6 +230,8 @@ public:
 	bool		is_planned_mission() { return _navigation_mode == &_mission; }
 
 	bool		abort_landing();
+
+	void 		global_to_local(struct position_setpoint_s *sp);
 
 private:
 
