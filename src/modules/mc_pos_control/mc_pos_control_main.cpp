@@ -220,7 +220,6 @@ private:
 	}		_params;
 
 	struct map_projection_reference_s _ref_pos;
-	float _ref_alt;
 	hrt_abstime _ref_timestamp;
 
 	bool _reset_sp_xy;
@@ -411,7 +410,6 @@ MulticopterPositionControl::MulticopterPositionControl() :
 	_vel_x_deriv(this, "VELD"),
 	_vel_y_deriv(this, "VELD"),
 	_vel_z_deriv(this, "VELD"),
-	_ref_alt(0.0f),
 	_ref_timestamp(0),
 	_reset_sp_xy(true),
 	_reset_sp_z(true),
