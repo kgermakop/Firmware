@@ -845,9 +845,23 @@ void
 Navigator::global_to_local(struct position_setpoint_s *sp)
 {
 
-	map_projection_project(get_local_reference_pos(), sp->lat, sp->lon,
-			       &sp->x, &sp->y);
+	map_projection_project(get_local_reference_pos(), sp->lat, sp->lon, &sp->x, &sp->y);
 	sp->z = -(sp->alt - get_local_reference_alt());
+
+}
+
+void
+Navigator::global_to_local(struct mission_item_s *item)
+{
+
+	map_projection_project(get_local_reference_pos(), item->lat, item->lon, &item->x, &item->y);
+
+	if (item->altitude_is_relative) {
+		item->z = - item->altitude;
+
+	} else {
+		item->z = - (item->altitude - get_local_reference_alt());
+	}
 
 }
 
