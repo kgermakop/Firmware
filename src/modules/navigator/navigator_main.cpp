@@ -873,9 +873,11 @@ Navigator::mission_item_to_navigator_item(struct navigator_item_s *nav_item, str
 
 	if (mission_item->altitude_is_relative) {
 		nav_item->z = - mission_item->altitude;
+		nav_item->altitude = mission_item->altitude;
 
 	} else {
 		nav_item->z = - (mission_item->altitude - get_local_reference_alt());
+		nav_item->altitude = mission_item->altitude + get_home_position()->alt;
 	}
 
 	nav_item->yaw = mission_item->yaw;
@@ -892,6 +894,7 @@ Navigator::mission_item_to_navigator_item(struct navigator_item_s *nav_item, str
 	nav_item->autocontinue = mission_item->autocontinue;
 	nav_item->disable_mc_yaw = mission_item->disable_mc_yaw;
 	nav_item->vtol_back_transition = mission_item->vtol_back_transition;
+	nav_item->time_inside = mission_item->time_inside;
 
 }
 

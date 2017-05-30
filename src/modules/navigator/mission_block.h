@@ -86,7 +86,7 @@ protected:
 	 * @param the mission item to convert
 	 * @param the position setpoint that needs to be set
 	 */
-	void mission_item_to_position_setpoint(const mission_item_s *item, position_setpoint_s *sp);
+	void mission_item_to_position_setpoint(const navigator_item_s *item, position_setpoint_s *sp);
 
 	/**
 	 * Set previous position setpoint to current setpoint
@@ -127,7 +127,7 @@ protected:
 
 	void issue_command(const struct mission_item_s *item);
 
-	float get_time_inside(const struct mission_item_s &item);
+	float get_time_inside(const struct navigator_item_s &item);
 
 	mission_item_s _mission_item{};
 	navigator_item_s _navigator_item{};

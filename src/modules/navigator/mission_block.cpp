@@ -486,7 +486,7 @@ MissionBlock::issue_command(const struct mission_item_s *item)
 }
 
 float
-MissionBlock::get_time_inside(const struct mission_item_s &item)
+MissionBlock::get_time_inside(const struct navitator_item_s &item)
 {
 	if (item.nav_cmd != NAV_CMD_TAKEOFF) {
 		return item.time_inside;
@@ -515,17 +515,12 @@ MissionBlock::item_contains_position(const struct mission_item_s *item)
 }
 
 void
-MissionBlock::mission_item_to_position_setpoint(const struct mission_item_s *item, struct position_setpoint_s *sp)
+MissionBlock::mission_item_to_position_setpoint(const struct navigator_item_s *item, struct position_setpoint_s *sp)
 {
-
-	/* don't change the setpoint for non-position items */
-	if (!item_contains_position(item)) {
-		return;
-	}
 
 	sp->lat = item->lat;
 	sp->lon = item->lon;
-	sp->alt = item->altitude_is_relative ? item->altitude + _navigator->get_home_position()->alt : item->altitude;
+	sp->alt = item->altitude;
 	sp->x = item->x;
 	sp->y = item->y;
 	sp->z = item->z;
