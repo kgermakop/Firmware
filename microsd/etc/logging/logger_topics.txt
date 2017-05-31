@@ -1,0 +1,4 @@
+control_state
+battery_status, 100
+actuator_controls_0
+set_point

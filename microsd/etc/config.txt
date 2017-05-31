@@ -1,0 +1,50 @@
+#!nsh
+#
+# @name qr_mdl_testbed config
+#
+# @type Quadrotor x
+#
+# @output AUX1 feed-through of RC AUX1 channel
+# @output AUX2 feed-through of RC AUX2 channel
+# @output AUX3 feed-through of RC AUX3 channel
+#
+# @maintainer dgkoul <dgkoul@gmail.com>
+#
+
+set VEHICLE_TYPE mc
+
+if [ $AUTOCNF == yes ]
+then
+	param set NAV_ACC_RAD 2.0
+	param set RTL_RETURN_ALT 30.0
+	param set RTL_DESCEND_ALT 10.0
+	param set PWM_DISARMED 900
+	param set PWM_MIN 1075
+	param set PWM_MAX 1950
+	param set PWM_RATE 50
+
+	param set RTL_LAND_DELAY 0
+fi
+
+# tell the mixer to use parameters for these instead
+set PWM_RATE 50
+set PWM_DISARMED 900
+set PWM_MIN 1075
+set PWM_MAX 1950
+
+# This is the gimbal pass mixer
+set MIXER_AUX pass
+set PWM_AUX_RATE 50
+set PWM_AUX_OUT 1234
+set PWM_AUX_DISARMED 1500
+set PWM_AUX_MIN 1000
+set PWM_AUX_MAX 2000
+
+if param compare PWM_DISARMED 0
+then
+	param set PWM_DISARMED 900
+fi
+
+set MIXER qr_mdl_testbed
+
+set PWM_OUT 1234
